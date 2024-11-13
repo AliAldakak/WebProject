@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { response } from 'express';
 import wikiService from './wiki-service';
 
 /**
@@ -58,6 +58,46 @@ router.post('/articles', (request, response) => {
         .catch((error) => response.status(500).send(error));
     }
   else response.status(400).send('Missing data');
+});
+
+router.post('/articles/:article_id/comments/new', (request, response) => {
+  const data = request.body;
+  if (data.comment && data.comment.content && data.comment.user && data.comment.article_id)
+    if (data.comment.article_id != 0) {
+      
+      wikiService
+        .addComment(data.comment)
+        .then((id) => {
+          response.send({ id: id });
+        })
+        .catch((error) => response.status(500).send(error));
+    }
+});
+
+router.get('/articles/:article_id/comments', (request, response) => {
+  const article_id = Number(request.params.article_id);
+  wikiService
+    .getComments(article_id)
+    .then((rows) => {
+      response.send(rows);
+    })
+    .catch((error) => response.status(500).send(error));
+});
+
+router.delete('/articles/:article_id/comments/:comment_id', (request, response) => {
+  const comment_id = Number(request.params.comment_id);
+  wikiService.deleteComment(comment_id).then();
+});
+
+router.post('/articles/:article_id/comments/:comment_id', (request, response) => {
+  const data = request.body;
+  if (data.comment.content)
+     wikiService.editComment(data.comment)
+  console.log('from router');
+  console.log(data.comment)
+  
+  
+  
 });
 
 export default router;

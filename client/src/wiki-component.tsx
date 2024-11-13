@@ -23,9 +23,19 @@ type Version = {
   version_type: string;
 };
 
+//comment type:
+type Comment = {
+  comment_id: number;
+  article_id: number;
+  user: string;
+  content: string;
+};
+
 export class ArticleDetails extends Component<{
   match: { params: { article_id: number; version_number?: number } };
 }> {
+  comments: Comment[] = [];
+
   article: Article = {
     article_id: 0,
     title: '',
@@ -33,6 +43,13 @@ export class ArticleDetails extends Component<{
     author: 'anon',
     edit_time: 0,
     version_number: 0,
+  };
+
+  comment: Comment = {
+    comment_id: 0,
+    article_id: 0,
+    user: '',
+    content: '',
   };
 
   render() {
@@ -50,11 +67,81 @@ export class ArticleDetails extends Component<{
             <Card title="">{this.article.content}</Card>
           </Row>
         </Card>
+        <Card title="Comments">
+          <Row>
+            <Column>comment:</Column>
+            <Column>Added by:</Column>
+            <Column>Edit:</Column>
+            <Column>Delete:</Column>
+          </Row>
+          {this.comments.map((comment, i) => (
+            <Row key={i}>
+              <Column>{comment.content}</Column>
+              <Column>{comment.user}</Column>
+              <Column>
+                <Button.Light
+                  onClick={() => {
+                    const newContent = String(prompt('Write your comment:'));
+                    comment.content = newContent;
+                    wikiService.editComment(comment);
+                  }}
+                >
+                  Edit
+                </Button.Light>
+              </Column>
+              <Column>
+                <Button.Danger
+                  onClick={() => {
+                    wikiService.deleteComment(comment);
+                  }}
+                >
+                  X
+                </Button.Danger>
+              </Column>
+            </Row>
+          ))}
+        </Card>
         <Button.Success
           onClick={() => history.push('/articles/' + this.props.match.params.article_id + '/edit')}
         >
           Edit
         </Button.Success>
+        <Card title="">
+          <Row>
+            <Column width={2}>
+              <Form.Label>Comment</Form.Label>
+            </Column>
+            <Column>
+              <Form.Textarea
+                type="text"
+                value={this.comment.content}
+                onChange={(event) => {
+                  this.comment.content = event.currentTarget.value;
+                }}
+                rows={2}
+              ></Form.Textarea>
+            </Column>
+          </Row>
+        </Card>
+        <Button.Success
+          onClick={() => {
+            const user = String(prompt('Username:'));
+            this.comment.user = user;
+            this.comment.article_id = this.article.article_id;
+            //console.log(this.comment);
+            wikiService
+              .addComment(this.comment)
+              .then((comment_id: number) =>
+                history.push(
+                  '/articles/' + this.props.match.params.article_id + '/comments/' + comment_id,
+                ),
+              )
+              .catch((error) => Alert.danger('Error adding comment: ' + error.message));
+          }}
+        >
+          Add comment
+        </Button.Success>
+
         <VersionHistory article_id={this.props.match.params.article_id} />
       </>
     );
@@ -73,6 +160,11 @@ export class ArticleDetails extends Component<{
         .then(() => wikiService.viewArticle(this.article.article_id))
         .catch((error) => Alert.danger('Error getting article: ' + error.message));
     }
+
+    wikiService
+      .getComments(this.props.match.params.article_id)
+      .then((comments) => (this.comments = comments))
+      .catch((error) => Alert.danger('Error getting comments: ' + error.message));
   }
 }
 
@@ -276,5 +368,15 @@ export class ArticleEdit extends Component<{ match: { params: { article_id: numb
       .getArticle(this.props.match.params.article_id)
       .then((article) => (this.article = article))
       .catch((error) => Alert.danger('Error getting article: ' + error.message));
+  }
+}
+
+export class Login extends Component {
+  render() {
+    return (
+      <div>
+        <h1>Log in</h1>
+      </div>
+    );
   }
 }

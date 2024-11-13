@@ -16,6 +16,14 @@ type Version = {
   version_type: string;
 };
 
+//comment type:
+type Comment = {
+  comment_id: number;
+  article_id: number;
+  user: string;
+  content: string;
+};
+
 class WikiService {
   getArticles() {
     return new Promise<Article[]>((resolve, reject) => {
@@ -152,6 +160,55 @@ class WikiService {
           );
         })
         .catch((error) => reject(error));
+    });
+  }
+
+  addComment(comment: Comment) {
+    return new Promise<number>((resolve, reject) => {
+      pool.query(
+        'INSERT INTO `Comments` (`article_id`,`user`,`content`) VALUES (?,?,?);',
+        [comment.article_id, comment.user, comment.content],
+        (error, results: ResultSetHeader) => {
+          if (error) return reject(error);
+          // returns the id of the new comment
+          resolve(results.insertId as number);
+        },
+      );
+    });
+  }
+
+  getComments(article_id: number) {
+    return new Promise<Comment[] | undefined>((resolve, reject) => {
+      pool.query(
+        'SELECT comment_id,article_id,  user, content FROM Comments WHERE article_id=? ',
+        [article_id],
+        (error, results: RowDataPacket[]) => {
+          if (error) return reject(error);
+
+          resolve(results as Comment[]);
+        },
+      );
+    });
+  }
+
+  deleteComment(comment_id: number) {
+    return new Promise((resolve, reject) => {
+      pool.query('DELETE FROM Comments WHERE comment_id = ?', [comment_id], (error) => {
+        if (error) return reject(error);
+      });
+    });
+  }
+
+  editComment(comment: Comment) {
+    return new Promise<void>((resolve, reject) => {
+      pool.query(
+        'UPDATE Comments SET content= ?  WHERE comment_id= ?;',
+        [comment.content, comment.comment_id],
+        (error, results) => {
+          if (error) return reject(error);
+          resolve();
+        },
+      );
     });
   }
 }

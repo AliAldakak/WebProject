@@ -4,6 +4,14 @@ import { Alert, Card, Row, Column, Button, Form } from './widgets';
 import { NavLink } from 'react-router-dom';
 import wikiService from './wiki-service';
 import { createHashHistory } from 'history';
+import {
+  FacebookShareButton,
+  FacebookIcon,
+  WhatsappShareButton,
+  WhatsappIcon,
+  TwitterShareButton,
+  TwitterIcon,
+} from 'react-share';
 
 const history = createHashHistory(); // Use history.push(...) to programmatically change path, for instance after successfully saving a student
 
@@ -53,6 +61,7 @@ export class ArticleDetails extends Component<{
   };
 
   render() {
+    const shareUrl = 'localhost:3000/#/articles/this.props.match.params.article_id';
     return (
       <>
         <Card title={this.article.title}>
@@ -92,7 +101,10 @@ export class ArticleDetails extends Component<{
               <Column>
                 <Button.Danger
                   onClick={() => {
-                    wikiService.deleteComment(comment);
+                    wikiService.deleteComment(comment).then((message) => {
+                      alert(message);
+                      this.mounted();
+                    });
                   }}
                 >
                   X
@@ -104,8 +116,22 @@ export class ArticleDetails extends Component<{
         <Button.Success
           onClick={() => history.push('/articles/' + this.props.match.params.article_id + '/edit')}
         >
-          Edit
+          Edit Article
         </Button.Success>
+        <h6>Share article: </h6>
+        <FacebookShareButton url={shareUrl}>
+          <FacebookIcon size={30} round={true} />
+        </FacebookShareButton>
+
+        <WhatsappShareButton url={shareUrl}>
+          <WhatsappIcon size={30} round={true} />
+        </WhatsappShareButton>
+
+        <TwitterShareButton url={shareUrl}>
+          <TwitterIcon size={30} round={true} />
+        </TwitterShareButton>
+
+        <div></div>
         <Card title="">
           <Row>
             <Column width={2}>
@@ -128,14 +154,13 @@ export class ArticleDetails extends Component<{
             const user = String(prompt('Username:'));
             this.comment.user = user;
             this.comment.article_id = this.article.article_id;
-            //console.log(this.comment);
             wikiService
               .addComment(this.comment)
-              .then((comment_id: number) =>
+              .then((comment_id: number) => {
                 history.push(
                   '/articles/' + this.props.match.params.article_id + '/comments/' + comment_id,
-                ),
-              )
+                );
+              })
               .catch((error) => Alert.danger('Error adding comment: ' + error.message));
           }}
         >

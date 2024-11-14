@@ -193,8 +193,10 @@ class WikiService {
 
   deleteComment(comment_id: number) {
     return new Promise((resolve, reject) => {
+      let message = " A comment is deleted";
       pool.query('DELETE FROM Comments WHERE comment_id = ?', [comment_id], (error) => {
         if (error) return reject(error);
+        resolve(message);
       });
     });
   }

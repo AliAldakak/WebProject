@@ -86,7 +86,7 @@ router.get('/articles/:article_id/comments', (request, response) => {
 
 router.delete('/articles/:article_id/comments/:comment_id', (request, response) => {
   const comment_id = Number(request.params.comment_id);
-  wikiService.deleteComment(comment_id).then();
+  wikiService.deleteComment(comment_id).then((message)=> response.send(message));
 });
 
 router.post('/articles/:article_id/comments/:comment_id', (request, response) => {
